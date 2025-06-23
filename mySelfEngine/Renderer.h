@@ -5,6 +5,7 @@
 #include <atlbase.h>
 #include "Mesh.h"
 #include "WICTextureLoader11.h"
+#include <memory>
 
 #include <d3d11.h>
 #include <dxgi.h>          // DXGI_SWAP_CHAIN_DESC
@@ -15,13 +16,40 @@
 #pragma comment(lib, "d3dcompiler.lib")
 
 
+class Model
+{
+public:
+	Model(ID3D11Device* Device, ID3D11DeviceContext* Context)
+		: m_Device(Device), m_Context(Context)
+	{
 
+	};
+	~Model()
+	{
+		if (m_Device) m_Device->Release();
+		if (m_Context) m_Context->Release();
+	}
+public:
+	CComPtr<ID3D11Buffer> m_VertexBuffer;
+	CComPtr<ID3D11Buffer> m_IndexBuffer;
+	CComPtr<ID3D11Buffer> m_ModelConstantBuffer;
 
+	void CreateVertexBuffer(const std::vector<Vertex>& Vertices);
+	void CreateIndexBuffer(const std::vector<unsigned int>& Indices);
+	void CreateModelConstantBuffer();
+	void Render();
+
+private:
+	std::vector<Vertex> m_Vertices;
+	std::vector<unsigned int> m_Indices;
+	ID3D11Device* m_Device;
+	ID3D11DeviceContext* m_Context;
+};
 
 
 class Renderer
 {
-public :
+public:
 	Renderer(HWND hwnd, ID3D11Device* Device,
 		ID3D11DeviceContext* Context, ID3D11RenderTargetView* RenderTargetView)
 		: m_hwnd(hwnd), m_Device(Device), m_Context(Context), m_RTV(RenderTargetView)
@@ -31,15 +59,22 @@ public :
 	{
 		if (m_VertexBuffer) m_VertexBuffer->Release();
 		if (m_IndexBuffer) m_IndexBuffer->Release();
+		if (m_Device) m_Device->Release();
+		if (m_Context) m_Context->Release();
 	}
 public:
-	CComPtr<ID3D11PixelShader> m_PixelShader=nullptr;
-	CComPtr<ID3D11VertexShader> m_VertexShader=nullptr;
-	CComPtr<ID3D11InputLayout> m_InputLayout=nullptr;
+	CComPtr<ID3D11PixelShader> m_PixelShader = nullptr;
+	CComPtr<ID3D11VertexShader> m_VertexShader = nullptr;
+	CComPtr<ID3D11InputLayout> m_InputLayout = nullptr;
 	CComPtr<ID3D11ShaderResourceView> m_SRV = nullptr;
 	CComPtr<ID3D11SamplerState> m_Sampler = nullptr;
+	CComPtr<ID3D11Buffer> m_ConstantBuffer = nullptr;
+	CComPtr<ID3D11RasterizerState> m_RasterState = nullptr;
+
 	ID3D11Buffer* m_VertexBuffer = nullptr;
 	ID3D11Buffer* m_IndexBuffer = nullptr;
+	std::vector<std::shared_ptr<Model>> m_Models;
+
 
 private:
 	ID3D11Device* m_Device = nullptr;
@@ -49,11 +84,17 @@ private:
 	HWND m_hwnd;
 
 public:
-	void CreateVertexBuffer();
-	void CreateIndexBuffer();
+	void CreateModels();
+	void CreateInputLayout();
 	void CreateConstantBuffer();
 	void CreateTexture();
+	void CreateSampler();
+	void CreateRs();
 	void SetShaders();
 	void Render();
 
 };
+
+
+
+

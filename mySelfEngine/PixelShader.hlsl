@@ -4,7 +4,7 @@ SamplerState g_Sampler : register(s0);
 struct VS_OUTPUT
 {
     float4 Pos : SV_POSITION;
-    float3 Col : COLOR;
+    float3 Normal : NORMAL;
     float2 Tex : TEXCOORD;
 };
 

@@ -136,9 +136,12 @@ void  MainWindow::Initialize()
 	SetRtvAndBackBuffer();
 	m_Renderer = std::make_unique<Renderer>(m_hwnd, m_Device, m_Context, m_renderTargetView);
 	m_Renderer->SetShaders();
-	m_Renderer->CreateVertexBuffer();
-	m_Renderer->CreateIndexBuffer();
+	m_Renderer->CreateModels();
+	m_Renderer->CreateInputLayout();
 	m_Renderer->CreateTexture();
+	m_Renderer->CreateSampler();
+	m_Renderer->CreateConstantBuffer();
+	m_Renderer->CreateRs();
 }
 
 void MainWindow::Update()

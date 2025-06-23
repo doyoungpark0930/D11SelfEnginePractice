@@ -1,32 +1,17 @@
 #include "Renderer.h"
 #include <stdio.h>
 
-void Renderer::CreateVertexBuffer() {
-	// 실제 정점 데이터 제공
-	std::vector<Vertex> verticesCombo = SquareVertices();
+void Renderer::CreateModels()
+{
+	std::shared_ptr<Model> Square = std::make_shared<Model>(m_Device,m_Context);
+	Square->CreateVertexBuffer(SquareVertices());
+	Square->CreateIndexBuffer(SquareIndices());
+	Square->CreateModelConstantBuffer();
 
-	// 버퍼 설명 채우기
-	D3D11_BUFFER_DESC bufferDesc;
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(Vertex) * verticesCombo.size();
-	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	bufferDesc.MiscFlags = 0;
-
-	// 서브리소스 데이터 채우기
-	D3D11_SUBRESOURCE_DATA InitData;
-	InitData.pSysMem = verticesCombo.data();
-	InitData.SysMemPitch = 0;
-	InitData.SysMemSlicePitch = 0;
-
-	// 버퍼 생성(Gpu 메모리에 올림)
-	HRESULT hr = m_Device->CreateBuffer(&bufferDesc, &InitData, &m_VertexBuffer);
-	if (FAILED(hr))
-	{
-		DebugBreak();
-	}
-
-
+	m_Models.push_back(Square);
+}
+void Renderer::CreateInputLayout()
+{
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		// POSITION
@@ -36,7 +21,7 @@ void Renderer::CreateVertexBuffer() {
 		},
 		// COLOR
 		{
-			"COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12,
+			"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12,
 			D3D11_INPUT_PER_VERTEX_DATA, 0
 		},
 		//Texture
@@ -47,7 +32,7 @@ void Renderer::CreateVertexBuffer() {
 	};
 	UINT numElements = ARRAYSIZE(layout);
 
-	hr = m_Device->CreateInputLayout(
+	HRESULT hr = m_Device->CreateInputLayout(
 		layout,
 		numElements,
 		g_vsshader,
@@ -59,70 +44,31 @@ void Renderer::CreateVertexBuffer() {
 	{
 		DebugBreak();
 	}
-
-}
-
-void Renderer::CreateIndexBuffer()
-{
-
-	// 인덱스 데이터 생성
-	std::vector<unsigned int> indices = SquareIndices();
-	// 버퍼 설명 작성
-	D3D11_BUFFER_DESC bufferDesc;
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	bufferDesc.ByteWidth = sizeof(unsigned int) * indices.size();
-	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
-	bufferDesc.MiscFlags = 0;
-
-	// 리소스 데이터 정의
-	D3D11_SUBRESOURCE_DATA InitData;
-	InitData.pSysMem = indices.data();
-	InitData.SysMemPitch = 0;
-	InitData.SysMemSlicePitch = 0;
-
-	// 디바이스로 버퍼 생성
-	HRESULT hr = m_Device->CreateBuffer(&bufferDesc, &InitData, &m_IndexBuffer);
-	if (FAILED(hr))
-	{
-		DebugBreak();
-	}
-
-
 }
 
 void Renderer::CreateConstantBuffer()
 {
-	ID3D11Buffer* g_pConstantBuffer11 = NULL;
+	VIEWPROJ_CONSTANT VsConstData;
 
-	// 셰이더와 통신할 상수 데이터 정의
-	struct VS_CONSTANT_BUFFER
-	{
-		XMFLOAT4X4 mWorldViewProj;
-		XMFLOAT4 vSomeVectorThatMayBeNeededByASpecificShader;
-		float fSomeFloatThatMayBeNeededByASpecificShader;
-		float fTime;
-		float fSomeFloatThatMayBeNeededByASpecificShader2;
-		float fSomeFloatThatMayBeNeededByASpecificShader3;
-	};
+	XMMATRIX View = 
+		XMMatrixLookAtLH(
+			XMVectorSet(0.0f, 0.0f, -5.0f, 1.0f),  // eye position
+			XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f),   // look at
+			XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)); // up
 
-	// 상수 데이터 채우기
-	VS_CONSTANT_BUFFER VsConstData;
-	VsConstData.mWorldViewProj = {
-		1.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 1.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 1.0f
-	};
-	VsConstData.vSomeVectorThatMayBeNeededByASpecificShader = XMFLOAT4(1, 2, 3, 4);
-	VsConstData.fSomeFloatThatMayBeNeededByASpecificShader = 3.0f;
-	VsConstData.fTime = 1.0f;
-	VsConstData.fSomeFloatThatMayBeNeededByASpecificShader2 = 2.0f;
-	VsConstData.fSomeFloatThatMayBeNeededByASpecificShader3 = 4.0f;
+	float fovY = XM_PIDIV4; 
+	float aspect = (float)1920 / (float)1050;
+	float nearZ = 0.1f;
+	float farZ = 100.0f;
+
+	XMMATRIX Proj = XMMatrixPerspectiveFovLH(fovY, aspect, nearZ, farZ);
+
+	XMStoreFloat4x4(&VsConstData.ViewProj, XMMatrixTranspose(View*Proj));
+
 
 	// 버퍼 설명 작성
 	D3D11_BUFFER_DESC cbDesc;
-	cbDesc.ByteWidth = sizeof(VS_CONSTANT_BUFFER);
+	cbDesc.ByteWidth = sizeof(VIEWPROJ_CONSTANT);
 	cbDesc.Usage = D3D11_USAGE_DYNAMIC;
 	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -136,14 +82,12 @@ void Renderer::CreateConstantBuffer()
 	InitData.SysMemSlicePitch = 0;
 
 	// 버퍼 생성
-	HRESULT hr = m_Device->CreateBuffer(&cbDesc, &InitData, &g_pConstantBuffer11);
+	HRESULT hr = m_Device->CreateBuffer(&cbDesc, &InitData, &m_ConstantBuffer);
 	if (FAILED(hr))
 	{
 		DebugBreak();
 	}
 
-	// 버퍼 셋팅
-	m_Context->VSSetConstantBuffers(0, 1, &g_pConstantBuffer11);
 
 }
 
@@ -179,6 +123,37 @@ void Renderer::SetShaders()
 
 }
 
+void Renderer::CreateSampler()
+{
+	D3D11_SAMPLER_DESC sampDesc = {};
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	HRESULT hr  = m_Device->CreateSamplerState(&sampDesc, &m_Sampler);
+
+	if (FAILED(hr))
+	{
+		DebugBreak();
+	}
+}
+
+void Renderer::CreateRs()
+{
+	D3D11_RASTERIZER_DESC rasterDesc = {};
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.CullMode = D3D11_CULL_BACK;
+	rasterDesc.FrontCounterClockwise = FALSE; 
+
+	HRESULT hr = m_Device->CreateRasterizerState(&rasterDesc, &m_RasterState);
+	if (FAILED(hr))
+	{
+		DebugBreak();
+	}
+}
 
 void Renderer::CreateTexture()
 {
@@ -195,17 +170,6 @@ void Renderer::CreateTexture()
 		DebugBreak();
 	}
 
-	CComPtr<ID3D11SamplerState> sampler;
-	D3D11_SAMPLER_DESC sampDesc = {};
-	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	sampDesc.MinLOD = 0;
-	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	m_Device->CreateSamplerState(&sampDesc, &sampler);
-
 }
 
 void Renderer::Render()
@@ -216,13 +180,8 @@ void Renderer::Render()
 	// 렌더타겟을 파란색으로 지우기
 	float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f }; // R,G,B,A
 	m_Context->ClearRenderTargetView(m_RTV, clearColor);
-
+	m_Context->RSSetState(m_RasterState.p);
 	m_Context->IASetInputLayout(m_InputLayout);
-
-	UINT stride = sizeof(Vertex);
-	UINT offset = 0;
-	m_Context->IASetVertexBuffers(0, 1, &m_VertexBuffer, &stride, &offset);
-	m_Context->IASetIndexBuffer(m_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 	m_Context->VSSetShader(m_VertexShader, nullptr, 0);
 	m_Context->PSSetShader(m_PixelShader, nullptr, 0);
@@ -230,7 +189,123 @@ void Renderer::Render()
 	m_Context->PSSetShaderResources(0, 1, &m_SRV.p);
 	m_Context->PSSetSamplers(0, 1, &m_Sampler.p);
 
+	m_Context->VSSetConstantBuffers(0, 1, &m_ConstantBuffer.p);
+
+	for (auto& iter : m_Models)
+	{
+		iter->Render();
+	}
+
+}
+
+
+
+
+
+
+
+
+//Model
+
+void Model::CreateVertexBuffer(const std::vector<Vertex> &Vertices) {
+	// 실제 정점 데이터 제공
+	m_Vertices = Vertices;
+
+	// 버퍼 설명 채우기
+	D3D11_BUFFER_DESC bufferDesc;
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(Vertex) * m_Vertices.size();
+	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	bufferDesc.MiscFlags = 0;
+
+	// 서브리소스 데이터 채우기
+	D3D11_SUBRESOURCE_DATA InitData;
+	InitData.pSysMem = m_Vertices.data();
+	InitData.SysMemPitch = 0;
+	InitData.SysMemSlicePitch = 0;
+
+	// 버퍼 생성(Gpu 메모리에 올림)
+	HRESULT hr = m_Device->CreateBuffer(&bufferDesc, &InitData, &m_VertexBuffer);
+	if (FAILED(hr))
+	{
+		DebugBreak();
+	}
+
+}
+
+void Model::CreateIndexBuffer(const std::vector<unsigned int> &Indices)
+{
+
+	// 인덱스 데이터 생성
+	m_Indices = Indices;
+	// 버퍼 설명 작성
+	D3D11_BUFFER_DESC bufferDesc;
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.ByteWidth = sizeof(unsigned int) * m_Indices.size();
+	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bufferDesc.CPUAccessFlags = 0;
+	bufferDesc.MiscFlags = 0;
+
+	// 리소스 데이터 정의
+	D3D11_SUBRESOURCE_DATA InitData;
+	InitData.pSysMem = m_Indices.data();
+	InitData.SysMemPitch = 0;
+	InitData.SysMemSlicePitch = 0;
+
+	// 디바이스로 버퍼 생성
+	HRESULT hr = m_Device->CreateBuffer(&bufferDesc, &InitData, &m_IndexBuffer);
+	if (FAILED(hr))
+	{
+		DebugBreak();
+	}
+
+
+}
+
+void Model::CreateModelConstantBuffer()
+{
+	MODEL_CONSTANT VsConstData;
+	XMMATRIX Model =
+		XMMatrixScaling(1.0f, 1.0f, 1.0f) *
+		XMMatrixRotationY(XMConvertToRadians(0.0f)) *
+		XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+
+	XMStoreFloat4x4(&VsConstData.Model, XMMatrixTranspose(Model));
+
+	// 버퍼 설명 작성
+	D3D11_BUFFER_DESC cbDesc;
+	cbDesc.ByteWidth = sizeof(VIEWPROJ_CONSTANT);
+	cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cbDesc.MiscFlags = 0;
+	cbDesc.StructureByteStride = 0;
+
+	// 서브리소스 데이터 작성
+	D3D11_SUBRESOURCE_DATA InitData;
+	InitData.pSysMem = &VsConstData;
+	InitData.SysMemPitch = 0;
+	InitData.SysMemSlicePitch = 0;
+
+	// 버퍼 생성
+	HRESULT hr = m_Device->CreateBuffer(&cbDesc, &InitData, &m_ModelConstantBuffer);
+	if (FAILED(hr))
+	{
+		DebugBreak();
+	}
+
+}
+
+void Model::Render()
+{
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+	m_Context->IASetVertexBuffers(0, 1, &m_VertexBuffer.p, &stride, &offset);
+	m_Context->IASetIndexBuffer(m_IndexBuffer.p, DXGI_FORMAT_R32_UINT, 0);
+	m_Context->VSSetConstantBuffers(1, 1, &m_ModelConstantBuffer.p);
+
 	m_Context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_Context->DrawIndexed(6, 0, 0);
+	m_Context->DrawIndexed(m_Indices.size(), 0, 0);
 }
 
