@@ -2,6 +2,7 @@
 #include <WindowsX.h>
 #include "basewin.h"
 #include "Renderer.h"
+#include <chrono>
 
 //https://github.com/microsoft/DirectXTK/wiki/WICTextureLoader
 #include <wrl/wrappers/corewrappers.h>
@@ -18,6 +19,7 @@ public :
 	ID3D11Texture2D* pBackBuffer;
 	ID3D11RenderTargetView* m_renderTargetView;
 
+	//depth stencil view와 proj의 aspect는 이거와 맞게 값 넣어줘야함
 	int m_width = 1920;
 	int m_height = 1050;
 	std::unique_ptr<Renderer> m_Renderer;

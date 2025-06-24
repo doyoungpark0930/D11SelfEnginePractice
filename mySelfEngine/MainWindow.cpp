@@ -142,10 +142,42 @@ void  MainWindow::Initialize()
 	m_Renderer->CreateSampler();
 	m_Renderer->CreateConstantBuffer();
 	m_Renderer->CreateRs();
+	m_Renderer->CreateDepthStencil();
 }
 
+using Clock = std::chrono::high_resolution_clock;
+Clock::time_point lastTime = Clock::now();
+int frameCount = 0;
+float fps = 0.0f;
+
+void FrameCount()
+{
+	frameCount++;
+
+	// 현재 시간
+	auto now = Clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTime);
+
+	// 1초 경과 시 FPS 계산
+	if (duration.count() >= 1000)
+	{
+		fps = frameCount * 1000.0f / duration.count();  // 밀리초 단위 → FPS 계산
+		frameCount = 0;
+		lastTime = now;
+
+		// 콘솔 출력
+		printf("FPS: %.2f\n", fps);
+	}
+}
+
+void MainWindow::Render()
+{
+	//FrameCount();
+	m_Renderer->Render();
+}
 void MainWindow::Update()
 {
+	m_Renderer->Update();
 }
 
 void MainWindow::DiscardGraphicsResources()

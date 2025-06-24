@@ -1,14 +1,4 @@
-﻿  compilation header save succeeded; see C:\Users\Lenovo\source\repos\mySelfEngine\mySelfEngine\VertexShader.h
-  compilation object save succeeded; see C:\Users\Lenovo\source\repos\mySelfEngine\x64\Debug\VertexShader.cso
-  MainWindow.cpp
-C:\Users\Lenovo\source\repos\mySelfEngine\mySelfEngine\MainWindow.cpp(106,13): warning C4244: '=': conversion from 'int' to 'FLOAT', possible loss of data
-C:\Users\Lenovo\source\repos\mySelfEngine\mySelfEngine\MainWindow.cpp(107,14): warning C4244: '=': conversion from 'int' to 'FLOAT', possible loss of data
-  Renderer.cpp
-C:\Users\Lenovo\source\repos\mySelfEngine\mySelfEngine\Renderer.cpp(217,40): warning C4267: '=': conversion from 'size_t' to 'UINT', possible loss of data
-C:\Users\Lenovo\source\repos\mySelfEngine\mySelfEngine\Renderer.cpp(245,46): warning C4267: '=': conversion from 'size_t' to 'UINT', possible loss of data
-C:\Users\Lenovo\source\repos\mySelfEngine\mySelfEngine\Renderer.cpp(309,39): warning C4267: 'argument': conversion from 'size_t' to 'UINT', possible loss of data
-  windows.cpp
-  Generating Code...
+﻿  Renderer.cpp
   mySelfEngine.vcxproj -> C:\Users\Lenovo\source\repos\mySelfEngine\x64\Debug\mySelfEngine.exe
   'pwsh.exe'은(는) 내부 또는 외부 명령, 실행할 수 있는 프로그램, 또는
   배치 파일이 아닙니다.

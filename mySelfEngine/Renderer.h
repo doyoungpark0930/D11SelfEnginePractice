@@ -6,6 +6,7 @@
 #include "Mesh.h"
 #include "WICTextureLoader11.h"
 #include <memory>
+#include "Model.h"
 
 #include <d3d11.h>
 #include <dxgi.h>          // DXGI_SWAP_CHAIN_DESC
@@ -15,36 +16,6 @@
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 
-
-class Model
-{
-public:
-	Model(ID3D11Device* Device, ID3D11DeviceContext* Context)
-		: m_Device(Device), m_Context(Context)
-	{
-
-	};
-	~Model()
-	{
-		if (m_Device) m_Device->Release();
-		if (m_Context) m_Context->Release();
-	}
-public:
-	CComPtr<ID3D11Buffer> m_VertexBuffer;
-	CComPtr<ID3D11Buffer> m_IndexBuffer;
-	CComPtr<ID3D11Buffer> m_ModelConstantBuffer;
-
-	void CreateVertexBuffer(const std::vector<Vertex>& Vertices);
-	void CreateIndexBuffer(const std::vector<unsigned int>& Indices);
-	void CreateModelConstantBuffer();
-	void Render();
-
-private:
-	std::vector<Vertex> m_Vertices;
-	std::vector<unsigned int> m_Indices;
-	ID3D11Device* m_Device;
-	ID3D11DeviceContext* m_Context;
-};
 
 
 class Renderer
@@ -71,6 +42,10 @@ public:
 	CComPtr<ID3D11Buffer> m_ConstantBuffer = nullptr;
 	CComPtr<ID3D11RasterizerState> m_RasterState = nullptr;
 
+	CComPtr<ID3D11Texture2D> m_DepthStencilTexture = nullptr;
+	CComPtr<ID3D11DepthStencilState> m_DSState = nullptr;
+	CComPtr<ID3D11DepthStencilView> m_DSV = nullptr;
+
 	ID3D11Buffer* m_VertexBuffer = nullptr;
 	ID3D11Buffer* m_IndexBuffer = nullptr;
 	std::vector<std::shared_ptr<Model>> m_Models;
@@ -83,6 +58,14 @@ private:
 
 	HWND m_hwnd;
 
+	float fovY = XM_PIDIV4;
+	float aspect = (float)1920 / (float)1050;
+	float nearZ = 0.1f;
+	float farZ = 100.0f;
+	XMFLOAT4 eyePos = XMFLOAT4(0.0f, 0.0f, -5.0f, 1.0f);
+	XMFLOAT4 lookAt= XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+	XMFLOAT4 up = XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f);
+
 public:
 	void CreateModels();
 	void CreateInputLayout();
@@ -91,6 +74,9 @@ public:
 	void CreateSampler();
 	void CreateRs();
 	void SetShaders();
+	void CreateDepthStencil();
+	void ConstantUpdate();
+	void Update();
 	void Render();
 
 };

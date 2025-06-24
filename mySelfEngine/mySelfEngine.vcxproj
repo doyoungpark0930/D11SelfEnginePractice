@@ -131,6 +131,7 @@
   <ItemGroup>
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="serverTest.cpp" />
     <ClCompile Include="WICTextureLoader11.cpp" />
@@ -139,6 +140,7 @@
   <ItemGroup>
     <ClInclude Include="basewin.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Shaders.h" />
     <ClInclude Include="VertexStruct.h" />
