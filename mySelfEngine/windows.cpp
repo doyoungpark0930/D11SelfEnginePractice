@@ -18,7 +18,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 
 
 	MainWindow win;
-	win.m_Renderer = std::make_unique<Renderer>(win.m_hwnd, win.m_Device, win.m_Context, win.m_renderTargetView);
 
 
 	if (!win.Create(L"DoYeong's Engine", WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, //크기 조절 막음
@@ -61,7 +60,46 @@ LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		Initialize();
 		return 0;
 	}
+	case WM_MOUSEMOVE:
+	{
+		m_Renderer->SetYawPitch(yaw, pitch);
 
+		return 0;
+	}
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case 'A':
+			m_isMovingLeft = true;
+			break;
+		case 'D':
+			m_isMovingRight = true;
+			break;
+		case 'W':
+			m_isMovingUp = true;
+			break;
+		case 'S':
+			m_isMovingDown = true;
+			break;
+		}
+		return 0;
+	case WM_KEYUP:
+		switch (wParam)
+		{
+		case 'A':
+			m_isMovingLeft = false;
+			break;
+		case 'D':
+			m_isMovingRight = false;
+			break;
+		case 'W':
+			m_isMovingUp = false;
+			break;
+		case 'S':
+			m_isMovingDown = false;
+			break;
+		}
+		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;

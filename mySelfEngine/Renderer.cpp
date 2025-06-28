@@ -1,6 +1,12 @@
 #include "Renderer.h"
 #include <stdio.h>
 
+void Renderer::SetYawPitch(float yaw, float pitch)
+{
+	m_yaw = yaw;
+	m_pitch = pitch;
+}
+
 void Renderer::CreateModels()
 {
 	std::shared_ptr<Model> Square = std::make_shared<Model>(m_Device, m_Context);
@@ -16,41 +22,6 @@ void Renderer::CreateModels()
 	Square2->CreateModelConstantBuffer();
 
 	m_Models.push_back(Square2);
-}
-void Renderer::CreateInputLayout()
-{
-	D3D11_INPUT_ELEMENT_DESC layout[] =
-	{
-		// POSITION
-		{
-			"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
-			D3D11_INPUT_PER_VERTEX_DATA, 0
-		},
-		// COLOR
-		{
-			"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12,
-			D3D11_INPUT_PER_VERTEX_DATA, 0
-		},
-		//Texture
-		{
-			"TEXCOORD",0, DXGI_FORMAT_R32G32_FLOAT, 0, 24,
-			D3D11_INPUT_PER_VERTEX_DATA, 0
-		}
-	};
-	UINT numElements = ARRAYSIZE(layout);
-
-	HRESULT hr = m_Device->CreateInputLayout(
-		layout,
-		numElements,
-		g_vsshader,
-		sizeof(g_vsshader),
-		&m_InputLayout
-	);
-
-	if (FAILED(hr))
-	{
-		DebugBreak();
-	}
 }
 
 void Renderer::CreateConstantBuffer()
@@ -90,38 +61,6 @@ void Renderer::CreateConstantBuffer()
 		DebugBreak();
 	}
 
-
-}
-
-void Renderer::SetShaders()
-{
-	HRESULT hr = S_OK;
-
-	// pPSBlob 필요 없음 → 대신 g_psshader 배열 사용
-	hr = m_Device->CreatePixelShader(
-		g_psshader,                  // 바이트 코드 데이터
-		sizeof(g_psshader),          // 바이트 코드 크기
-		nullptr,
-		&m_PixelShader
-	);
-
-	if (FAILED(hr))
-	{
-		DebugBreak();
-	}
-
-
-	hr = m_Device->CreateVertexShader(
-		g_vsshader,
-		sizeof(g_vsshader),
-		nullptr,
-		&m_VertexShader
-	);
-
-	if (FAILED(hr))
-	{
-		DebugBreak();
-	};
 
 }
 
@@ -248,9 +187,10 @@ void Renderer::ConstantUpdate()
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	ZeroMemory(&mappedResource, sizeof(D3D11_MAPPED_SUBRESOURCE));
 
+
 	XMMATRIX View =
 		XMMatrixLookAtLH(
-			XMVectorSet(eyePos.x,eyePos.y,eyePos.z,eyePos.w),  // eye position
+			XMVectorSet(eyePos.x, eyePos.y, eyePos.z, eyePos.w),  // eye position
 			XMVectorSet(lookAt.x, lookAt.y, lookAt.z, lookAt.w),   // look at
 			XMVectorSet(up.x, up.y, up.z, up.w)); // up
 
@@ -270,12 +210,14 @@ void Renderer::ConstantUpdate()
 
 void Renderer::Update()
 {
-	eyePos.x += 0.01f;
-	//m_Models[0]->pos.x += 0.001f;
-	//m_Models[0]->rotationY += 0.1f;
+	m_Models[0]->scale.x = 2.0f;
+	m_Models[0]->scale.y = 2.0f;
+	m_Models[0]->rotation.x = 90.0f;
+	m_Models[0]->pos.y = -1.0f;
 
 	m_Models[1]->pos.x = 1.0f;
-	m_Models[1]->pos.z = 1.0f;
+	m_Models[1]->pos.z = 2.0f;
+	m_Models[1]->rotation.y += 0.05f;
 
 	ConstantUpdate();
 	for (auto& iter : m_Models)
@@ -297,10 +239,6 @@ void Renderer::Render()
 
 
 	m_Context->RSSetState(m_RasterState.p);
-	m_Context->IASetInputLayout(m_InputLayout);
-
-	m_Context->VSSetShader(m_VertexShader, nullptr, 0);
-	m_Context->PSSetShader(m_PixelShader, nullptr, 0);
 
 	m_Context->PSSetShaderResources(0, 1, &m_SRV.p);
 	m_Context->PSSetSamplers(0, 1, &m_Sampler.p);

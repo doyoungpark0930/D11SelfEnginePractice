@@ -4,7 +4,6 @@
 
 using namespace DirectX;
 
-// 정점을 설명하는 데이터 타입 정의
 struct Vertex
 {
 	XMFLOAT3 Pos;
@@ -12,9 +11,19 @@ struct Vertex
 	XMFLOAT2 Tex;   // 텍스처 좌표 (U, V)
 };
 
+struct NormalVertex
+{
+	XMFLOAT3 Pos;
+	XMFLOAT3 Normal;
+	XMFLOAT3 StartPos;  //vertex시작 지점
+};
+
+
+
 struct MODEL_CONSTANT
 {
 	XMFLOAT4X4 Model;
+	XMFLOAT4X4 NormalModel;
 };
 
 struct VIEWPROJ_CONSTANT

@@ -6,6 +6,7 @@ cbuffer VIEWPROJ_CONSTANT : register(b0)
 cbuffer MODEL_CONSTANT : register(b1)
 {
     float4x4 Model;
+    float4x4 NormalModel; 
 };
 
 
@@ -30,7 +31,7 @@ VS_OUTPUT VSMain(VS_INPUT input)
     float4 worldPos = mul(float4(input.Pos, 1.0f), Model);
     
     output.Pos = mul(worldPos, ViewProj);
-    output.Normal = input.Normal;
+    output.Normal = normalize(mul(float4(input.Normal, 0.0f), NormalModel).xyz);
     output.Tex = input.Tex; 
     return output;
 }

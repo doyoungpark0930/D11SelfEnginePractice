@@ -23,6 +23,15 @@ public :
 	int m_width = 1920;
 	int m_height = 1050;
 	std::unique_ptr<Renderer> m_Renderer;
+	std::unique_ptr<ShaderSet> m_ShaderSet;
+
+	float yaw = 0.0f;   // 좌우 회전 (Y축)
+	float pitch = 0.0f; // 상하 회전 (X축)
+
+	bool m_isMovingUp = false;
+	bool m_isMovingDown = false;
+	bool m_isMovingLeft = false;
+	bool m_isMovingRight = false;
 
 private:
 	void CreateDevice();

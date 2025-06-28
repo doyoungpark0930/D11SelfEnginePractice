@@ -7,6 +7,7 @@
 #include "WICTextureLoader11.h"
 #include <memory>
 #include "Model.h"
+#include "ShaderSet.h"
 
 #include <d3d11.h>
 #include <dxgi.h>          // DXGI_SWAP_CHAIN_DESC
@@ -25,6 +26,8 @@ public:
 		ID3D11DeviceContext* Context, ID3D11RenderTargetView* RenderTargetView)
 		: m_hwnd(hwnd), m_Device(Device), m_Context(Context), m_RTV(RenderTargetView)
 	{
+		m_Device->AddRef();
+		m_Context->AddRef();
 	}
 	~Renderer()
 	{
@@ -34,9 +37,6 @@ public:
 		if (m_Context) m_Context->Release();
 	}
 public:
-	CComPtr<ID3D11PixelShader> m_PixelShader = nullptr;
-	CComPtr<ID3D11VertexShader> m_VertexShader = nullptr;
-	CComPtr<ID3D11InputLayout> m_InputLayout = nullptr;
 	CComPtr<ID3D11ShaderResourceView> m_SRV = nullptr;
 	CComPtr<ID3D11SamplerState> m_Sampler = nullptr;
 	CComPtr<ID3D11Buffer> m_ConstantBuffer = nullptr;
@@ -50,6 +50,9 @@ public:
 	ID3D11Buffer* m_IndexBuffer = nullptr;
 	std::vector<std::shared_ptr<Model>> m_Models;
 
+	XMFLOAT4 eyePos = XMFLOAT4(0.0f, 0.0f, -5.0f, 1.0f);
+	XMFLOAT4 lookAt = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+	XMFLOAT4 up = XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f);
 
 private:
 	ID3D11Device* m_Device = nullptr;
@@ -62,18 +65,19 @@ private:
 	float aspect = (float)1920 / (float)1050;
 	float nearZ = 0.1f;
 	float farZ = 100.0f;
-	XMFLOAT4 eyePos = XMFLOAT4(0.0f, 0.0f, -5.0f, 1.0f);
-	XMFLOAT4 lookAt= XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-	XMFLOAT4 up = XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f);
+
+	float m_yaw = 0.0f;
+	float m_pitch = 0.0f;
+
+
 
 public:
+	void SetYawPitch(float yaw, float pitch);
 	void CreateModels();
-	void CreateInputLayout();
 	void CreateConstantBuffer();
 	void CreateTexture();
 	void CreateSampler();
 	void CreateRs();
-	void SetShaders();
 	void CreateDepthStencil();
 	void ConstantUpdate();
 	void Update();

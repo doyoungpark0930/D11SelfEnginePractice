@@ -135,14 +135,16 @@ void  MainWindow::Initialize()
 	CreateDevice();
 	SetRtvAndBackBuffer();
 	m_Renderer = std::make_unique<Renderer>(m_hwnd, m_Device, m_Context, m_renderTargetView);
-	m_Renderer->SetShaders();
+	m_ShaderSet = std::make_unique<ShaderSet>(m_Device, m_Context);
 	m_Renderer->CreateModels();
-	m_Renderer->CreateInputLayout();
 	m_Renderer->CreateTexture();
 	m_Renderer->CreateSampler();
 	m_Renderer->CreateConstantBuffer();
 	m_Renderer->CreateRs();
 	m_Renderer->CreateDepthStencil();
+
+	m_ShaderSet->SetShaders();
+	m_ShaderSet->CreateInputLayout();
 }
 
 using Clock = std::chrono::high_resolution_clock;
@@ -174,9 +176,30 @@ void MainWindow::Render()
 {
 	//FrameCount();
 	m_Renderer->Render();
+	
 }
 void MainWindow::Update()
 {
+	if (m_isMovingUp)
+	{
+		m_Renderer->eyePos.y += 0.01f;
+		m_Renderer->lookAt.y += 0.01f;
+	}
+	if (m_isMovingDown)
+	{
+		m_Renderer->eyePos.y -= 0.01f;
+		m_Renderer->lookAt.y -= 0.01f;
+	}
+	if (m_isMovingLeft)
+	{
+		m_Renderer->eyePos.x -= 0.01f;
+		m_Renderer->lookAt.x -= 0.01f;
+	}
+	if (m_isMovingRight)
+	{
+		m_Renderer->eyePos.x += 0.01f;
+		m_Renderer->lookAt.x += 0.01f;
+	}
 	m_Renderer->Update();
 }
 

@@ -2,6 +2,7 @@
 #include "VertexStruct.h"
 #include <vector>
 #include <atlbase.h>
+#include "ShaderSet.h"
 
 #include <d3d11.h>
 #include <dxgi.h>          // DXGI_SWAP_CHAIN_DESC
@@ -29,19 +30,24 @@ public:
 	CComPtr<ID3D11Buffer> m_IndexBuffer;
 	CComPtr<ID3D11Buffer> m_ModelConstantBuffer;
 
+	std::vector<CComPtr<ID3D11Buffer>> m_NormalBuffers;
+
 	XMFLOAT3 scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
-	float rotationY = 0.0f;
+	XMFLOAT3 rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	XMFLOAT3 pos = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
 	void CreateVertexBuffer(const std::vector<Vertex>& Vertices);
+	void CreateNormalBuffer(const Vertex& Vertices,int i);
 	void CreateIndexBuffer(const std::vector<unsigned int>& Indices);
 	void CreateModelConstantBuffer();
 	void Render();
+	void NormalRender(const int i);
 	void Update();
 
 private:
 	std::vector<Vertex> m_Vertices;
 	std::vector<unsigned int> m_Indices;
+	NormalVertex m_NormalVertex[2];
 	ID3D11Device* m_Device;
 	ID3D11DeviceContext* m_Context;
 };
